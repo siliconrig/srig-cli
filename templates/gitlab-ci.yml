@@ -1,0 +1,26 @@
+# Flashbay GitLab CI/CD Template
+#
+# Include in your .gitlab-ci.yml:
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/flashbay-dev/fbay-cli/main/templates/gitlab-ci.yml'
+#
+# Then use the .flashbay-test template in your jobs:
+#   test-on-hardware:
+#     extends: .flashbay-test
+#     variables:
+#       FLASHBAY_BOARD: esp32-s3
+#       FLASHBAY_FIRMWARE: build/firmware.bin
+
+.flashbay-test:
+  image: golang:1.24
+  before_script:
+    - go install github.com/flashbay-dev/fbay-cli@latest
+  script:
+    - fbay session create --board $FLASHBAY_BOARD
+    - fbay flash $FLASHBAY_FIRMWARE
+    - fbay serial --timeout 30
+    - fbay session end
+  variables:
+    FLASHBAY_API_KEY: ""
+    FLASHBAY_BOARD: ""
+    FLASHBAY_FIRMWARE: ""
