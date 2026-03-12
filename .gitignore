@@ -16,10 +16,8 @@ coverage.html
 *.swp
 *.swo
 
-# OS
-.DS_Store
 Thumbs.db
 
-# Environment
-.env
-.env.local
+.*
+!.gitignore
+!.github/
