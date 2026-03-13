@@ -21,3 +21,4 @@ Thumbs.db
 .*
 !.gitignore
 !.github/
+!.goreleaser.yml

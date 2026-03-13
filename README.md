@@ -54,7 +54,3 @@ fbay version                       Print CLI version
     fbay serial --timeout 30s --log output.txt
     fbay session end
 ```
-
-## License
-
-Apache 2.0

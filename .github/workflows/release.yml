@@ -13,47 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
-      - name: Build binaries
-        run: |
-          VERSION="${GITHUB_REF_NAME}"
-          LDFLAGS="-s -w -X main.Version=${VERSION}"
-
-          platforms=(
-            "linux/amd64"
-            "linux/arm64"
-            "linux/arm/7"
-            "darwin/amd64"
-            "darwin/arm64"
-            "windows/amd64"
-          )
-
-          mkdir -p dist
-
-          for platform in "${platforms[@]}"; do
-            IFS='/' read -r GOOS GOARCH GOARM <<< "$platform"
-            output="fbay-${GOOS}-${GOARCH}"
-            [ -n "$GOARM" ] && output="${output}v${GOARM}"
-            [ "$GOOS" = "windows" ] && output="${output}.exe"
-
-            echo "Building ${output}..."
-            GOOS=$GOOS GOARCH=$GOARCH GOARM=$GOARM \
-              go build -ldflags "$LDFLAGS" -o "dist/${output}" .
-          done
-
-          cd dist
-          for f in *; do
-            sha256sum "$f" >> checksums.txt
-          done
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
+      - name: Run goreleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
-          generate_release_notes: true
-          files: |
-            dist/fbay-*
-            dist/checksums.txt
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
