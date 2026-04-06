@@ -1,6 +1,6 @@
 package client
 
-// Board represents a flashbay board as returned by the coordinator API.
+// Board represents a siliconrig board as returned by the coordinator API.
 type Board struct {
 	ID               string  `json:"id"`
 	PodID            *string `json:"pod_id,omitempty"`
@@ -14,7 +14,7 @@ type Board struct {
 	CreatedAt        string  `json:"created_at"`
 }
 
-// Session represents a flashbay session as returned by the coordinator API.
+// Session represents a siliconrig session as returned by the coordinator API.
 type Session struct {
 	ID          string  `json:"id"`
 	UserID      string  `json:"user_id"`

@@ -2,7 +2,7 @@ version: 2
 
 builds:
   - main: .
-    binary: fbay
+    binary: srig
     ldflags:
       - -s -w -X main.Version={{ .Version }}
     goos:
@@ -28,7 +28,7 @@ archives:
     format_overrides:
       - goos: windows
         formats: [zip]
-    name_template: "fbay_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    name_template: "srig_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
 
 checksum:
   name_template: checksums.txt

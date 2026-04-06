@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/flashbay-dev/fbay-cli/client"
-	"github.com/flashbay-dev/fbay-cli/output"
+	"github.com/siliconrig/srig-cli/client"
+	"github.com/siliconrig/srig-cli/output"
 	"github.com/spf13/cobra"
 )
 

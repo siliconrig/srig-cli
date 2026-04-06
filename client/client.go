@@ -26,7 +26,7 @@ func (e *APIError) Error() string {
 	return fmt.Sprintf("api: %d — %s", e.StatusCode, e.Message)
 }
 
-// Client talks to the flashbay coordinator API.
+// Client talks to the siliconrig coordinator API.
 type Client struct {
 	BaseURL string
 	APIKey  string

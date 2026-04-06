@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/flashbay-dev/fbay-cli/client"
-	"github.com/flashbay-dev/fbay-cli/cmd"
-	"github.com/flashbay-dev/fbay-cli/output"
+	"github.com/siliconrig/srig-cli/client"
+	"github.com/siliconrig/srig-cli/cmd"
+	"github.com/siliconrig/srig-cli/output"
 	"github.com/spf13/cobra"
 )
 
@@ -20,12 +20,12 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "fbay",
-	Short: "flashbay — remote access to real MCU hardware",
-	Long:  "CLI for the flashbay Hardware-as-a-Service platform.\nFlash firmware, open serial terminals, and run CI/CD tests on real boards.",
+	Use:   "srig",
+	Short: "siliconrig — remote access to real MCU hardware",
+	Long:  "CLI for the siliconrig Hardware-as-a-Service platform.\nFlash firmware, open serial terminals, and run CI/CD tests on real boards.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if flagAPIKey == "" {
-			flagAPIKey = os.Getenv("FLASHBAY_API_KEY")
+			flagAPIKey = os.Getenv("SRIG_API_KEY")
 		}
 		// Public commands — skip auth requirement.
 		if cmd.Name() == "status" || cmd.Name() == "version" {
@@ -33,7 +33,7 @@ var rootCmd = &cobra.Command{
 			return nil
 		}
 		if flagAPIKey == "" {
-			return fmt.Errorf("no API key — set FLASHBAY_API_KEY or use --api-key")
+			return fmt.Errorf("no API key — set SRIG_API_KEY or use --api-key")
 		}
 		c = client.New(flagBaseURL, flagAPIKey)
 		return nil
@@ -43,8 +43,8 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&flagAPIKey, "api-key", "", "API key (env: FLASHBAY_API_KEY)")
-	rootCmd.PersistentFlags().StringVar(&flagBaseURL, "base-url", envOr("FLASHBAY_BASE_URL", "https://api.fbay.io"), "API base URL (env: FLASHBAY_BASE_URL)")
+	rootCmd.PersistentFlags().StringVar(&flagAPIKey, "api-key", "", "API key (env: SRIG_API_KEY)")
+	rootCmd.PersistentFlags().StringVar(&flagBaseURL, "base-url", envOr("SRIG_BASE_URL", "https://api.srig.io"), "API base URL (env: SRIG_BASE_URL)")
 	rootCmd.PersistentFlags().BoolVar(&flagJSON, "json", false, "Output as JSON")
 
 	rootCmd.AddCommand(cmd.NewStatusCmd(&c, &flagJSON))
@@ -57,7 +57,7 @@ func init() {
 		Use:   "version",
 		Short: "Print the CLI version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("fbay " + Version)
+			fmt.Println("srig " + Version)
 		},
 	})
 

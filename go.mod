@@ -1,4 +1,4 @@
-module github.com/flashbay-dev/fbay-cli
+module github.com/siliconrig/srig-cli
 
 go 1.24.0
 
