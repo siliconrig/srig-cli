@@ -53,7 +53,7 @@ func NewSessionCmd(c **client.Client, jsonFlag *bool, baseURL *string) *cobra.Co
 			return nil
 		},
 	}
-	createCmd.Flags().String("board", "", "Board type (e.g., esp32-s3)")
+	createCmd.Flags().String("board", "", "Board type: esp32-s3, stm32-h753, stm32-f446, rp2350")
 
 	listCmd := &cobra.Command{
 		Use:   "list",
