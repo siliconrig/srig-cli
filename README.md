@@ -2,11 +2,15 @@
 
 CLI tool for the [siliconrig](https://siliconrig.dev) Hardware-as-a-Service platform.
 
-Flash firmware, open serial terminals, and run CI/CD tests on real MCU boards — all from your terminal.
+Flash firmware, open serial terminals, and run CI/CD tests on real embedded boards — all from your terminal.
 
 ## Install
 
-Download a binary from [Releases](https://github.com/siliconrig/srig-cli/releases), or build from source:
+```bash
+curl -fsSL https://siliconrig.dev/install.sh | sh
+```
+
+Or download a binary from [Releases](https://github.com/siliconrig/srig-cli/releases), or build from source:
 
 ```bash
 go install github.com/siliconrig/srig-cli@latest
