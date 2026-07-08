@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -40,5 +41,25 @@ func TestFlashFirmwareBytes(t *testing.T) {
 	}
 	if !strings.EqualFold(string(gotBody), string([]byte{1, 2, 3, 4})) {
 		t.Errorf("body = % x, want 01 02 03 04", gotBody)
+	}
+}
+
+func TestIsTransient(t *testing.T) {
+	cases := []struct {
+		err  error
+		want bool
+	}{
+		{&APIError{StatusCode: 503, Message: "no available board"}, true},
+		{&APIError{StatusCode: 500, Message: "internal error"}, true},
+		{&APIError{StatusCode: 402, Message: "insufficient credits"}, false},
+		{&APIError{StatusCode: 409, Message: "concurrent session limit reached"}, false},
+		{&APIError{StatusCode: 401, Message: "unauthorized"}, false},
+		{&APIError{StatusCode: 400, Message: "board_type is required"}, false},
+		{errors.New("dial tcp: connection refused"), true},
+	}
+	for _, tc := range cases {
+		if got := IsTransient(tc.err); got != tc.want {
+			t.Errorf("IsTransient(%v) = %v, want %v", tc.err, got, tc.want)
+		}
 	}
 }

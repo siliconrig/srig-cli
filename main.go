@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -21,8 +22,8 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "srig",
-	Short: "siliconrig — remote access to real MCU hardware",
-	Long:  "CLI for the siliconrig Hardware-as-a-Service platform.\nFlash firmware, open serial terminals, and run CI/CD tests on real boards.",
+	Short: "siliconrig — remote access to real embedded hardware",
+	Long:  "CLI for the siliconrig Hardware-as-a-Service platform.\nFlash firmware, open serial terminals, and run CI/CD tests on real embedded devices.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if flagAPIKey == "" {
 			flagAPIKey = os.Getenv("SRIG_API_KEY")
@@ -50,6 +51,7 @@ func init() {
 	rootCmd.AddCommand(cmd.NewStatusCmd(&c, &flagJSON))
 	rootCmd.AddCommand(cmd.NewSessionCmd(&c, &flagJSON, &flagBaseURL))
 	rootCmd.AddCommand(cmd.NewFlashCmd(&c, &flagJSON))
+	rootCmd.AddCommand(cmd.NewRunCmd(&c, &flagJSON))
 	rootCmd.AddCommand(cmd.NewSerialCmd(&c, &flagJSON))
 	rootCmd.AddCommand(cmd.NewPowerCycleCmd(&c, &flagJSON))
 	rootCmd.AddCommand(cmd.NewWhoamiCmd(&c, &flagJSON))
@@ -66,6 +68,10 @@ func init() {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
+		var ee *cmd.ExitError
+		if errors.As(err, &ee) {
+			os.Exit(ee.Code) // run already printed its own output
+		}
 		output.Error(err.Error())
 		os.Exit(1)
 	}

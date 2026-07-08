@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -244,4 +245,21 @@ func (c *Client) FindActiveSession() (*Session, error) {
 		}
 	}
 	return nil, fmt.Errorf("no active session found")
+}
+
+// IsTransient reports whether err is a transient failure worth retrying
+// (server unavailability or a network-level error) rather than a client error
+// (auth, validation, credits) that won't resolve on retry.
+func IsTransient(err error) bool {
+	var apiErr *APIError
+	if errors.As(err, &apiErr) {
+		switch apiErr.StatusCode {
+		case http.StatusServiceUnavailable, http.StatusInternalServerError,
+			http.StatusBadGateway, http.StatusGatewayTimeout, http.StatusTooManyRequests:
+			return true
+		default:
+			return false
+		}
+	}
+	return true
 }
