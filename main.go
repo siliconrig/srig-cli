@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/siliconrig/srig-cli/client"
 	"github.com/siliconrig/srig-cli/cmd"
@@ -67,7 +70,9 @@ func init() {
 }
 
 func main() {
-	if err := rootCmd.Execute(); err != nil {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		var ee *cmd.ExitError
 		if errors.As(err, &ee) {
 			os.Exit(ee.Code) // run already printed its own output

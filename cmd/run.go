@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/coder/websocket"
@@ -184,27 +182,16 @@ func runOnSession(parent context.Context, c *client.Client, sess *client.Session
 		wcancel()
 	}
 
-	// Phase 2: watch serial for --timeout, honoring SIGINT.
+	// Phase 2: watch serial for --timeout. The parent context cancels on SIGINT
+	// (wired via signal.NotifyContext in main), so a cancelled parent = interrupt.
 	watchCtx, cancelWatch := context.WithTimeout(parent, timeout)
 	defer cancelWatch()
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-	defer signal.Stop(sigCh)
-	interrupted := false
-	go func() {
-		select {
-		case <-sigCh:
-			interrupted = true
-			cancelWatch()
-		case <-watchCtx.Done():
-		}
-	}()
 
 	var buf strings.Builder
 	for {
 		_, raw, err := ws.Read(watchCtx)
 		if err != nil {
-			if interrupted {
+			if parent.Err() != nil {
 				return runner.Outcome{ExitCode: 130, Reason: "interrupted"}, nil
 			}
 			if watchCtx.Err() == context.DeadlineExceeded {
@@ -224,7 +211,11 @@ func runOnSession(parent context.Context, c *client.Client, sess *client.Session
 		if derr != nil {
 			continue
 		}
-		os.Stdout.Write(decoded)
+		if jsonFlag {
+			os.Stderr.Write(decoded) // keep stdout pure JSON under --json
+		} else {
+			os.Stdout.Write(decoded)
+		}
 		if logW != nil {
 			logW.Write(decoded)
 		}
