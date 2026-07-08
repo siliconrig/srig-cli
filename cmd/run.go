@@ -163,13 +163,22 @@ func runOnSession(parent context.Context, c *client.Client, sess *client.Session
 	defer cancelFlash()
 	ws, err := c.DialSerialWS(flashCtx, sess.ID)
 	if err != nil {
+		if parent.Err() != nil {
+			return runner.Outcome{ExitCode: 130, Reason: "interrupted"}, nil
+		}
 		return runner.Outcome{}, fmt.Errorf("connect to session: %w", err)
 	}
 	defer ws.CloseNow()
 	if err := c.FlashFirmwareBytes(sess.ID, "firmware.bin", flashBytes); err != nil {
+		if parent.Err() != nil {
+			return runner.Outcome{ExitCode: 130, Reason: "interrupted"}, nil
+		}
 		return runner.Outcome{}, fmt.Errorf("upload firmware: %w", err)
 	}
 	if err := waitFlashDone(flashCtx, ws, jsonFlag); err != nil {
+		if parent.Err() != nil {
+			return runner.Outcome{ExitCode: 130, Reason: "interrupted"}, nil
+		}
 		return runner.Outcome{}, err
 	}
 
