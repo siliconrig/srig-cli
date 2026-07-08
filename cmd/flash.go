@@ -10,28 +10,33 @@ import (
 	"time"
 
 	"github.com/siliconrig/srig-cli/client"
+	"github.com/siliconrig/srig-cli/firmware"
 	"github.com/siliconrig/srig-cli/output"
 	"github.com/spf13/cobra"
 )
 
 func NewFlashCmd(c **client.Client, jsonFlag *bool) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "flash <firmware.bin>",
+		Use:   "flash <firmware>",
 		Short: "Flash firmware to a remote board",
-		Long:  "Upload and flash a firmware binary to the board in your active session.\nIf --session is not given, auto-detects the active session.",
-		Args:  cobra.ExactArgs(1),
+		Long: "Upload and flash firmware to the board in your active session.\n" +
+			"Accepts a raw .bin (all boards), a .uf2 (rp2350), or an .elf / Intel .hex\n" +
+			"for STM32 boards (auto-converted to a raw image before upload).\n" +
+			"If --session is not given, auto-detects the active session.",
+		Example: "  srig flash build/app.bin\n" +
+			"  srig flash build/firmware.elf --session sess_abc123\n" +
+			"  srig flash build/firmware.hex",
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filePath := args[0]
 			sessionID, _ := cmd.Flags().GetString("session")
 			timeout, _ := cmd.Flags().GetDuration("timeout")
 
-			// Validate file exists
-			info, err := os.Stat(filePath)
+			data, err := os.ReadFile(filePath)
 			if err != nil {
 				return fmt.Errorf("cannot read firmware file: %w", err)
 			}
 
-			// Find session
 			var sess *client.Session
 			if sessionID != "" {
 				sess, err = (*c).GetSession(sessionID)
@@ -44,16 +49,24 @@ func NewFlashCmd(c **client.Client, jsonFlag *bool) *cobra.Command {
 					return err
 				}
 			}
-
 			if sess.State != "active" && sess.State != "idle" {
 				return fmt.Errorf("session %s is %s, not active", sess.ID, sess.State)
 			}
 
+			flashBytes, fwInfo, err := firmware.Normalize(data, sess.BoardType)
+			if err != nil {
+				return err
+			}
+			if len(flashBytes) > 4<<20 {
+				return fmt.Errorf("firmware is %d bytes after conversion, over the 4 MB limit", len(flashBytes))
+			}
 			if !*jsonFlag {
-				output.Info(fmt.Sprintf("flashing %s (%d bytes) to session %s", filePath, info.Size(), sess.ID))
+				if fwInfo.Format != firmware.FormatRaw {
+					output.Info(fmt.Sprintf("detected %s, converted to %d-byte bin @ %#x", fwInfo.Format, fwInfo.Size, fwInfo.BaseAddr))
+				}
+				output.Info(fmt.Sprintf("flashing %s (%d bytes) to session %s", filePath, len(flashBytes), sess.ID))
 			}
 
-			// Connect serial WS to receive flash progress
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
 
@@ -63,8 +76,7 @@ func NewFlashCmd(c **client.Client, jsonFlag *bool) *cobra.Command {
 			}
 			defer ws.CloseNow()
 
-			// Upload firmware
-			if err := (*c).FlashFirmware(sess.ID, filePath); err != nil {
+			if err := (*c).FlashFirmwareBytes(sess.ID, "firmware.bin", flashBytes); err != nil {
 				return fmt.Errorf("upload firmware: %w", err)
 			}
 

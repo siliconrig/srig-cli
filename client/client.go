@@ -158,22 +158,25 @@ func (c *Client) GetMe() (*User, error) {
 	return &user, nil
 }
 
-// FlashFirmware uploads a firmware binary to the given session.
+// FlashFirmware uploads a firmware file to the given session.
 func (c *Client) FlashFirmware(sessionID, filePath string) error {
-	f, err := os.Open(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("open firmware file: %w", err)
 	}
-	defer f.Close()
+	return c.FlashFirmwareBytes(sessionID, filepath.Base(filePath), data)
+}
 
+// FlashFirmwareBytes uploads in-memory firmware bytes to the given session.
+func (c *Client) FlashFirmwareBytes(sessionID, name string, data []byte) error {
 	var buf bytes.Buffer
 	w := multipart.NewWriter(&buf)
-	part, err := w.CreateFormFile("firmware", filepath.Base(filePath))
+	part, err := w.CreateFormFile("firmware", name)
 	if err != nil {
 		return fmt.Errorf("create form file: %w", err)
 	}
-	if _, err := io.Copy(part, f); err != nil {
-		return fmt.Errorf("copy firmware: %w", err)
+	if _, err := part.Write(data); err != nil {
+		return fmt.Errorf("write firmware: %w", err)
 	}
 	w.Close()
 
