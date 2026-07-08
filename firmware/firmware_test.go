@@ -46,8 +46,14 @@ func TestLayoutSegments(t *testing.T) {
 }
 
 // buildELF32 writes a minimal little-endian ARM ELF with one PT_LOAD segment
-// at paddr=base carrying payload. Keeps the test hermetic (no arm toolchain).
+// at paddr=vaddr=base carrying payload. Keeps the test hermetic (no arm toolchain).
 func buildELF32(base uint32, payload []byte) []byte {
+	return buildELF32VP(base, base, payload)
+}
+
+// buildELF32VP is like buildELF32 but writes distinct p_vaddr and p_paddr, so
+// tests can prove placement is by physical (load) address, not virtual address.
+func buildELF32VP(vaddr, paddr uint32, payload []byte) []byte {
 	const ehsize, phentsize = 52, 32
 	dataOff := uint32(ehsize + phentsize)
 	buf := make([]byte, dataOff)
@@ -56,20 +62,20 @@ func buildELF32(base uint32, payload []byte) []byte {
 	le.PutUint16(buf[16:], 2)         // e_type ET_EXEC
 	le.PutUint16(buf[18:], 40)        // e_machine EM_ARM
 	le.PutUint32(buf[20:], 1)         // e_version
-	le.PutUint32(buf[24:], base)      // e_entry
+	le.PutUint32(buf[24:], paddr)     // e_entry
 	le.PutUint32(buf[28:], 52)        // e_phoff
 	le.PutUint16(buf[40:], ehsize)    // e_ehsize
 	le.PutUint16(buf[42:], phentsize) // e_phentsize
 	le.PutUint16(buf[44:], 1)         // e_phnum
 	ph := buf[52:84]
-	le.PutUint32(ph[0:], 1)                    // p_type PT_LOAD
-	le.PutUint32(ph[4:], dataOff)              // p_offset
-	le.PutUint32(ph[8:], base)                 // p_vaddr
-	le.PutUint32(ph[12:], base)                // p_paddr
+	le.PutUint32(ph[0:], 1)                     // p_type PT_LOAD
+	le.PutUint32(ph[4:], dataOff)               // p_offset
+	le.PutUint32(ph[8:], vaddr)                 // p_vaddr
+	le.PutUint32(ph[12:], paddr)                // p_paddr
 	le.PutUint32(ph[16:], uint32(len(payload))) // p_filesz
 	le.PutUint32(ph[20:], uint32(len(payload))) // p_memsz
-	le.PutUint32(ph[24:], 5)                   // p_flags R+X
-	le.PutUint32(ph[28:], 4)                   // p_align
+	le.PutUint32(ph[24:], 5)                    // p_flags R+X
+	le.PutUint32(ph[28:], 4)                    // p_align
 	return append(buf, payload...)
 }
 
@@ -92,5 +98,17 @@ func TestElfToBinNoLoadable(t *testing.T) {
 	elf := buildELF32(0x08000000, nil) // p_filesz == 0
 	if _, _, err := elfToBin(elf); err == nil {
 		t.Fatal("expected error for ELF with no loadable segments")
+	}
+}
+
+func TestElfToBinUsesPaddr(t *testing.T) {
+	payload := []byte{0x11, 0x22}
+	elf := buildELF32VP(0x20000000 /*vaddr*/, 0x08000000 /*paddr*/, payload)
+	_, base, err := elfToBin(elf)
+	if err != nil {
+		t.Fatalf("elfToBin: %v", err)
+	}
+	if base != 0x08000000 {
+		t.Errorf("base = %#x, want 0x08000000 (paddr, not vaddr)", base)
 	}
 }
