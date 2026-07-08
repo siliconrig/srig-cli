@@ -70,8 +70,8 @@ func NewRunCmd(c **client.Client, jsonFlag *bool) *cobra.Command {
 				output.Error(err.Error())
 				return &ExitError{Code: 2}
 			}
-			if len(flashBytes) > 4<<20 {
-				output.Error(fmt.Sprintf("firmware is %d bytes after conversion, over the 4 MB limit", len(flashBytes)))
+			if len(flashBytes) > 16<<20 {
+				output.Error(fmt.Sprintf("firmware is %d bytes, over the platform's 16 MB limit", len(flashBytes)))
 				return &ExitError{Code: 2}
 			}
 			if !*jsonFlag && fwInfo.Format != firmware.FormatRaw {

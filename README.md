@@ -31,7 +31,7 @@ srig status                        Show board availability
 srig session create --board TYPE   Start a session
 srig session list                  List your sessions
 srig session end [ID]              End a session (auto-detects active)
-srig flash <firmware.bin>          Flash firmware to the board
+srig flash <firmware>              Flash firmware to the board
 srig run <firmware> --board TYPE   Flash, watch serial, and assert — one-shot, CI-ready exit code
 srig serial                        Open serial terminal (Ctrl+] to exit)
 srig power-cycle                   Power cycle the board
