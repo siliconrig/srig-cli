@@ -50,8 +50,14 @@ func ihexToBin(data []byte) ([]byte, uint64, error) {
 		case 0x01: // EOF
 			return layoutSegments(segs)
 		case 0x02: // extended segment address
+			if len(payload) != 2 {
+				return nil, 0, fmt.Errorf("line %d: type 0x02 record needs 2 data bytes, got %d", ln, len(payload))
+			}
 			upper = uint64(binary.BigEndian.Uint16(payload)) << 4
 		case 0x04: // extended linear address
+			if len(payload) != 2 {
+				return nil, 0, fmt.Errorf("line %d: type 0x04 record needs 2 data bytes, got %d", ln, len(payload))
+			}
 			upper = uint64(binary.BigEndian.Uint16(payload)) << 16
 		case 0x03, 0x05: // start address — ignored
 		default:
@@ -61,8 +67,5 @@ func ihexToBin(data []byte) ([]byte, uint64, error) {
 	if err := sc.Err(); err != nil {
 		return nil, 0, err
 	}
-	if len(segs) == 0 {
-		return nil, 0, errors.New("HEX has no data records")
-	}
-	return layoutSegments(segs)
+	return nil, 0, errors.New("HEX file has no EOF record (:00000001FF)")
 }
