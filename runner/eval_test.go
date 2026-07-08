@@ -18,6 +18,8 @@ func TestFeed(t *testing.T) {
 		{"expect match", "All tests passed", "", "All tests passed!", true, 0, "expect"},
 		{"no match", "PASS", "FAIL", "boot ok", false, 0, ""},
 		{"sentinel beats fail on same line", "", "exit", "##srig-exit:0## exit", true, 0, "sentinel"},
+		{"fail beats expect on same line", "ok", "ok", "ok now", true, 1, "fail"},
+		{"anchored expect matches despite trailing CR", "READY$", "", "READY\r", true, 0, "expect"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -50,6 +52,12 @@ func TestTimeout(t *testing.T) {
 func TestNewEvaluatorBadRegex(t *testing.T) {
 	if _, err := NewEvaluator("(", ""); err == nil {
 		t.Fatal("expected regex compile error")
+	}
+}
+
+func TestNewEvaluatorBadFailRegex(t *testing.T) {
+	if _, err := NewEvaluator("", "("); err == nil {
+		t.Fatal("expected regex compile error for fail pattern")
 	}
 }
 

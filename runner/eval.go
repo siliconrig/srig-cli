@@ -42,10 +42,13 @@ func NewEvaluator(expect, fail string) (*Evaluator, error) {
 // Feed evaluates one line of serial output. It returns (outcome, true) when a
 // terminal condition is reached; precedence is sentinel > fail > expect.
 func (e *Evaluator) Feed(line string) (Outcome, bool) {
-	trimmed := strings.TrimRight(line, "\r\n")
-	if m := sentinelRe.FindStringSubmatch(trimmed); m != nil {
-		code, _ := strconv.Atoi(m[1])
-		return Outcome{ExitCode: code, Reason: "sentinel", Matched: trimmed}, true
+	line = strings.TrimRight(line, "\r\n")
+	if m := sentinelRe.FindStringSubmatch(line); m != nil {
+		code, err := strconv.Atoi(m[1])
+		if err != nil {
+			code = 1 // malformed sentinel value → treat as failure, never a false pass
+		}
+		return Outcome{ExitCode: code, Reason: "sentinel", Matched: line}, true
 	}
 	if e.fail != nil && e.fail.MatchString(line) {
 		return Outcome{ExitCode: 1, Reason: "fail", Matched: line}, true
