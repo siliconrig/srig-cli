@@ -17,6 +17,7 @@ coverage.html
 *.swo
 
 Thumbs.db
+docs/
 
 .*
 !.gitignore
