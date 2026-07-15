@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/siliconrig/srig-cli/client"
-	"github.com/siliconrig/srig-cli/cmd"
-	"github.com/siliconrig/srig-cli/output"
+	"github.com/raws-labs/srig-cli/client"
+	"github.com/raws-labs/srig-cli/cmd"
+	"github.com/raws-labs/srig-cli/output"
 	"github.com/spf13/cobra"
 )
 

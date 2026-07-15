@@ -1,4 +1,4 @@
-module github.com/siliconrig/srig-cli
+module github.com/raws-labs/srig-cli
 
 go 1.24.0
 

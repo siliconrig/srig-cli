@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/siliconrig/srig-cli/client"
-	"github.com/siliconrig/srig-cli/output"
+	"github.com/raws-labs/srig-cli/client"
+	"github.com/raws-labs/srig-cli/output"
 	"github.com/spf13/cobra"
 )
 

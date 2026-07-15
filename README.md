@@ -10,10 +10,10 @@ Flash firmware, open serial terminals, and run CI/CD tests on real embedded boar
 curl -fsSL https://siliconrig.dev/install.sh | sh
 ```
 
-Or download a binary from [Releases](https://github.com/siliconrig/srig-cli/releases), or build from source:
+Or download a binary from [Releases](https://github.com/raws-labs/srig-cli/releases), or build from source:
 
 ```bash
-go install github.com/siliconrig/srig-cli@latest
+go install github.com/raws-labs/srig-cli@latest
 ```
 
 ## Authentication
